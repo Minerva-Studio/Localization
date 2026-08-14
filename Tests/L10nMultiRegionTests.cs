@@ -1,6 +1,8 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Minerva.Localizations.EscapePatterns;
 
 namespace Minerva.Localizations.Tests
 {
@@ -188,6 +190,53 @@ namespace Minerva.Localizations.Tests
             Assert.That(L10n.Tr("Sentence"), Is.EqualTo("Apple"));
         }
 
+        /// <summary>Preserve mode keeps dynamic tokens while still resolving nested localization references.</summary>
+        [Test]
+        public void TryTrRaw_PreserveModeKeepsDynamicTokenAndExpandsNestedReference()
+        {
+            var manager = CreateManager();
+            var context = new IndexedContext(new IndexedValues { values = new[] { 1.5f } });
+
+            L10n.Init(manager);
+            L10n.Load("EN-US", asMainRegion: true);
+            var result = L10n.TryTrRawIn("EN-US", "$Term$ {values[0]:f0}", context, L10nParams.Create(), L10nDynamicValueMode.Preserve);
+
+            Assert.That(result.TranslatedText, Is.EqualTo("Apple {values[0]:f0}"));
+            Assert.That(result.Diagnostics.Errors.Count, Is.EqualTo(1));
+            Assert.That(result.Diagnostics.Errors.Single().ErrorType, Is.EqualTo("DynamicValuePreserved"));
+            Assert.That(result.Diagnostics.Errors.Single().Severity, Is.EqualTo(L10nErrorSeverity.Warning));
+        }
+
+        /// <summary>Evaluate mode resolves indexed values and indexed arithmetic through the real context.</summary>
+        [Test]
+        public void TryTrRaw_EvaluateModeResolvesIndexedValueAndExpression()
+        {
+            var manager = CreateManager();
+            var context = new IndexedContext(new IndexedValues { values = new[] { 1.5f } });
+
+            L10n.Init(manager);
+            L10n.Load("EN-US", asMainRegion: true);
+            var result = L10n.TryTrRawIn("EN-US", "{values[0] * 2}", context, L10nParams.Create());
+
+            Assert.That(result.TranslatedText, Is.EqualTo("3"));
+            Assert.That(result.Diagnostics?.Errors ?? new List<L10nEvaluationError>(), Is.Empty);
+        }
+
+        /// <summary>Invalid indexed paths return authored text with a structured diagnostic.</summary>
+        [Test]
+        public void TryTrRaw_InvalidIndexedPathProducesDiagnosticWithoutThrowing()
+        {
+            var manager = CreateManager();
+            var context = new IndexedContext(new IndexedValues { values = new[] { 1.5f } });
+
+            L10n.Init(manager);
+            L10n.Load("EN-US", asMainRegion: true);
+            var result = L10n.TryTrRawIn("EN-US", "{values[3]}", context, L10nParams.Create());
+
+            Assert.That(result.TranslatedText, Is.EqualTo("values[3]"));
+            Assert.That(result.Diagnostics.Errors.Single().ErrorType, Is.EqualTo("VariableResolution"));
+        }
+
         [Test]
         public void Unload_RejectsFallbackAndMainRegions()
         {
@@ -207,6 +256,16 @@ namespace Minerva.Localizations.Tests
         /// <summary>
         /// Creates an in-memory manager with fallback and two real regions.
         /// </summary>
+        private sealed class IndexedValues
+        {
+            public float[] values;
+        }
+
+        private sealed class IndexedContext : L10nContext
+        {
+            public IndexedContext(IndexedValues value) : base(value, "Indexed") { }
+        }
+
         private L10nDataManager CreateManager()
         {
             var manager = ScriptableObject.CreateInstance<L10nDataManager>();

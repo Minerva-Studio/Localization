@@ -1,4 +1,5 @@
 using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using static Minerva.Localizations.EscapePatterns.ExpressionParser;
@@ -201,6 +202,18 @@ namespace Minerva.Localizations.EscapePatterns
 
         private void EvaluateDynamicValue(L10nToken token, StringBuilder output, int tokenIndex)
         {
+            if (context.DynamicValueMode == L10nDynamicValueMode.Preserve)
+            {
+                string preserved = $"{{{token.Content}{(token.Metadata.Length > 0 ? $":{token.Metadata}" : string.Empty)}}}";
+                diagnostics.AddError(
+                    L10nErrorSeverity.Warning,
+                    token.Content.ToString(),
+                    "DynamicValuePreserved",
+                    $"Dynamic value '{preserved}' was preserved by request.");
+                output.Append(preserved);
+                return;
+            }
+
             try
             {
                 var exprSpan = token.Content.Span;
@@ -329,7 +342,7 @@ namespace Minerva.Localizations.EscapePatterns
             {
                 char c = expr[i];
 
-                if (char.IsLetterOrDigit(c) || c == '_' || c == '.')
+                if (char.IsLetterOrDigit(c) || c == '_' || c == '.' || c == '[' || c == ']')
                     continue;
 
                 if (c == '<')
@@ -436,14 +449,14 @@ namespace Minerva.Localizations.EscapePatterns
             // No parameters - fast path (single allocation)
             if (angleIndex < 0)
             {
-                return context.Context.GetEscapeValue(varName.ToString(), L10nParams.FromVariables(context.Variables));
+                return ResolveContextValue(varName, L10nParams.FromVariables(context.Variables));
             }
 
             // Has parameters - parse carefully
             if (nameSpan[^1] != '>')
             {
                 // Malformed, fallback
-                return context.Context.GetEscapeValue(varName.ToString(), L10nParams.FromVariables(context.Variables));
+                return ResolveContextValue(varName, L10nParams.FromVariables(context.Variables));
             }
 
             var key = varName[..angleIndex].ToString();
@@ -452,12 +465,28 @@ namespace Minerva.Localizations.EscapePatterns
             // Empty parameters
             if (paramSpan.Length == 0)
             {
-                return context.Context.GetEscapeValue(key, L10nParams.FromVariables(context.Variables));
+                return ResolveContextValue(key.AsMemory(), L10nParams.FromVariables(context.Variables));
             }
 
             // Parse parameters directly to L10nParams (zero-allocation parsing)
             var parameters = L10nParams.ParseParameters(paramSpan);
-            return context.Context.GetEscapeValue(key, parameters);
+            return ResolveContextValue(key.AsMemory(), parameters);
+        }
+
+        /// <summary>Reports indexed paths that the context could not resolve instead of silently emitting the path.</summary>
+        private object ResolveContextValue(ReadOnlyMemory<char> path, L10nParams parameters)
+        {
+            string pathText = path.ToString();
+            object value = context.Context.GetEscapeValue(pathText, parameters);
+            if (value is string unresolved && unresolved == pathText && pathText.IndexOf('[', StringComparison.Ordinal) >= 0)
+            {
+                diagnostics.AddError(
+                    L10nErrorSeverity.Error,
+                    pathText,
+                    "VariableResolution",
+                    $"Indexed localization path '{pathText}' could not be resolved.");
+            }
+            return value;
         }
 
         private string ApplyReferenceOptions(string key, string content, bool isTooltip)

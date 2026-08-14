@@ -191,10 +191,16 @@ namespace Minerva.Localizations
         /// </summary>
         public L10nTranslationResult TryTrRaw(string rawContent, ILocalizableContext context, L10nParams parameters)
         {
+            return TryTrRaw(rawContent, context, parameters, L10nDynamicValueMode.Evaluate);
+        }
+
+        /// <summary>Translates raw localization content with an explicit dynamic-value mode.</summary>
+        public L10nTranslationResult TryTrRaw(string rawContent, ILocalizableContext context, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
             L10nTranslationResult translationResult;
             using (L10n.UseRegionContext(this))
             {
-                translationResult = EscapePattern.TryEscape(rawContent, context, parameters);
+                translationResult = L10nEscapeWithMode.TryEscape(rawContent, context, parameters, dynamicValueMode);
             }
             var result = translationResult.TranslatedText;
             L10n.InvokeOnTranslating(string.Empty, ref result);
@@ -207,11 +213,17 @@ namespace Minerva.Localizations
         /// </summary>
         public L10nTranslationResult TryTr(ILocalizableContext context, L10nParams parameters)
         {
+            return TryTr(context, parameters, L10nDynamicValueMode.Evaluate);
+        }
+
+        /// <summary>Translates a localization context with an explicit dynamic-value mode.</summary>
+        public L10nTranslationResult TryTr(ILocalizableContext context, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
             L10nTranslationResult translationResult;
             using (L10n.UseRegionContext(this))
             {
                 var rawString = context.GetRawContent(parameters);
-                translationResult = EscapePattern.TryEscape(rawString, context, parameters.IncreaseDepth());
+                translationResult = L10nEscapeWithMode.TryEscape(rawString, context, parameters.IncreaseDepth(), dynamicValueMode);
             }
 
             var key = context.GetLocalizationKey(parameters);
@@ -226,12 +238,18 @@ namespace Minerva.Localizations
         /// </summary>
         public L10nTranslationResult TryTr(string key, L10nParams parameters)
         {
+            return TryTr(key, parameters, L10nDynamicValueMode.Evaluate);
+        }
+
+        /// <summary>Translates a localization key with an explicit dynamic-value mode.</summary>
+        public L10nTranslationResult TryTr(string key, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
             var fullKey = Localizable.AppendKey(key, parameters.Options);
             var rawString = GetRawContent(fullKey);
             L10nTranslationResult translationResult;
             using (L10n.UseRegionContext(this))
             {
-                translationResult = EscapePattern.TryEscape(rawString, null, parameters);
+                translationResult = L10nEscapeWithMode.TryEscape(rawString, null, parameters, dynamicValueMode);
             }
             var result = translationResult.TranslatedText;
             L10n.InvokeOnTranslating(fullKey, ref result);
@@ -244,12 +262,18 @@ namespace Minerva.Localizations
         /// </summary>
         public L10nTranslationResult TryTr(Key key, L10nParams parameters)
         {
+            return TryTr(key, parameters, L10nDynamicValueMode.Evaluate);
+        }
+
+        /// <summary>Translates a localization key value with an explicit dynamic-value mode.</summary>
+        public L10nTranslationResult TryTr(Key key, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
             var fullKey = Key.Join(in key, parameters.Options);
             var rawString = GetRawContent(fullKey);
             L10nTranslationResult translationResult;
             using (L10n.UseRegionContext(this))
             {
-                translationResult = EscapePattern.TryEscape(rawString, null, parameters);
+                translationResult = L10nEscapeWithMode.TryEscape(rawString, null, parameters, dynamicValueMode);
             }
             var result = translationResult.TranslatedText;
             L10n.InvokeOnTranslating(fullKey, ref result);

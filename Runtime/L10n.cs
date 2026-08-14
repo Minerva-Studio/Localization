@@ -543,12 +543,24 @@ namespace Minerva.Localizations
             return ForRegion(region).TryTr(key, parameters);
         }
 
+        /// <summary>Translates a key in an explicit region with a dynamic-value mode.</summary>
+        public static L10nTranslationResult TryTrIn(string region, string key, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
+            return ForRegion(region).TryTr(key, parameters, dynamicValueMode);
+        }
+
         /// <summary>
         /// Translates a key through an explicit region and returns parser diagnostics.
         /// </summary>
         public static L10nTranslationResult TryTrIn(string region, Key key, L10nParams parameters)
         {
             return ForRegion(region).TryTr(key, parameters);
+        }
+
+        /// <summary>Translates a key value in an explicit region with a dynamic-value mode.</summary>
+        public static L10nTranslationResult TryTrIn(string region, Key key, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
+            return ForRegion(region).TryTr(key, parameters, dynamicValueMode);
         }
 
         /// <summary>
@@ -559,12 +571,24 @@ namespace Minerva.Localizations
             return ForRegion(region).TryTr(context, parameters);
         }
 
+        /// <summary>Translates a context in an explicit region with a dynamic-value mode.</summary>
+        public static L10nTranslationResult TryTrIn(string region, ILocalizableContext context, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
+            return ForRegion(region).TryTr(context, parameters, dynamicValueMode);
+        }
+
         /// <summary>
         /// Translates raw content through an explicit region and returns parser diagnostics.
         /// </summary>
         public static L10nTranslationResult TryTrRawIn(string region, string rawContent, ILocalizableContext context, L10nParams parameters)
         {
             return ForRegion(region).TryTrRaw(rawContent, context, parameters);
+        }
+
+        /// <summary>Translates raw content in an explicit region with a dynamic-value mode.</summary>
+        public static L10nTranslationResult TryTrRawIn(string region, string rawContent, ILocalizableContext context, L10nParams parameters, L10nDynamicValueMode dynamicValueMode)
+        {
+            return ForRegion(region).TryTrRaw(rawContent, context, parameters, dynamicValueMode);
         }
 
         /// <summary>

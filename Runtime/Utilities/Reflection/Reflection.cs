@@ -520,7 +520,12 @@ namespace Minerva.Localizations.Utilities
                         // current = ((IList)current)[index]
                         var listExpr = Convert(current, typeof(IList));
                         var indexExpr = Constant(entry.Index);
-                        current = Property(listExpr, "Item", indexExpr);
+                        var countExpr = Property(listExpr, "Count");
+                        var inRange = AndAlso(
+                            GreaterThanOrEqual(indexExpr, Constant(0)),
+                            LessThan(indexExpr, countExpr));
+                        var indexedValue = Property(listExpr, "Item", indexExpr);
+                        current = Condition(inRange, indexedValue, Constant(null, typeof(object)));
                         currentType = typeof(object); // IList returns object
                     }
                     else

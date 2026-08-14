@@ -223,6 +223,8 @@ namespace Minerva.Localizations.EscapePatterns
                     case '.':
                     case '~':
                     case '_':
+                    case '[':
+                    case ']':
                         return true;
                     default:
                         return false;

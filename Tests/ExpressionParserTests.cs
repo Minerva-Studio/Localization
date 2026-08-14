@@ -106,6 +106,14 @@ namespace Minerva.Localizations.Tests
             Assert.That(EvalFloat("(x+y)^2", vars), Is.EqualTo(49f).Within(1e-4f)); // if '^' is power
         }
 
+        /// <summary>Indexed variable paths remain valid operands in arithmetic expressions.</summary>
+        [Test]
+        public void Variables_ArrayIndexedPath_ShouldParseAndEvaluate()
+        {
+            var vars = new Dictionary<string, object> { { "values[0]", 1.5f } };
+            Assert.That(EvalFloat("values[0]*2", vars), Is.EqualTo(3f).Within(1e-4f));
+        }
+
         [Test]
         public void MissingVariable_ShouldThrow()
         {
