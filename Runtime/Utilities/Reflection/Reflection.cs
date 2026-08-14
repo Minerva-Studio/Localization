@@ -514,14 +514,27 @@ namespace Minerva.Localizations.Utilities
                 // Apply indexer if needed
                 if (entry.HasIndex)
                 {
-                    // Check if it's IList
-                    if (typeof(IList).IsAssignableFrom(currentType))
+                    if (currentType.IsArray)
+                    {
+                        var arrayExpr = Convert(current, currentType);
+                        var indexExpr = Constant(entry.Index);
+                        var inRange = AndAlso(
+                            ReferenceNotEqual(arrayExpr, Constant(null, currentType)),
+                            GreaterThanOrEqual(indexExpr, Constant(0)),
+                            LessThan(indexExpr, ArrayLength(arrayExpr)));
+                        var indexedValue = Convert(ArrayIndex(arrayExpr, indexExpr), typeof(object));
+                        current = Condition(inRange, indexedValue, Constant(null, typeof(object)));
+                        currentType = typeof(object);
+                    }
+                    else if (typeof(IList).IsAssignableFrom(currentType))
                     {
                         // current = ((IList)current)[index]
                         var listExpr = Convert(current, typeof(IList));
                         var indexExpr = Constant(entry.Index);
-                        var countExpr = Property(listExpr, "Count");
+                        var collectionExpr = Convert(listExpr, typeof(ICollection));
+                        var countExpr = Property(collectionExpr, nameof(ICollection.Count));
                         var inRange = AndAlso(
+                            ReferenceNotEqual(listExpr, Constant(null, typeof(IList))),
                             GreaterThanOrEqual(indexExpr, Constant(0)),
                             LessThan(indexExpr, countExpr));
                         var indexedValue = Property(listExpr, "Item", indexExpr);

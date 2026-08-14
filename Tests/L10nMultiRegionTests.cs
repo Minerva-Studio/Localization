@@ -216,7 +216,7 @@ namespace Minerva.Localizations.Tests
 
             L10n.Init(manager);
             L10n.Load("EN-US", asMainRegion: true);
-            var result = L10n.TryTrRawIn("EN-US", "{values[0] * 2}", context, L10nParams.Create());
+            var result = L10n.TryTrRawIn("EN-US", "{values[0] * 2:f0}", context, L10nParams.Create());
 
             Assert.That(result.TranslatedText, Is.EqualTo("3"));
             Assert.That(result.Diagnostics?.Errors ?? new List<L10nEvaluationError>(), Is.Empty);
