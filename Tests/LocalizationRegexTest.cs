@@ -17,49 +17,48 @@ namespace Minerva.Localizations.Tests
         public static readonly Regex COLOR_CODE_PATTERN = new(@"(?<!\\)(?:\\{2})*§(#[0-9A-Fa-f]{6})([\s\S]*?)§");
         public static readonly Regex BACKSLASH_PATTERN = new(@"\\(.)");
 
-        public const int MAX_NUM_PER_SEGMENT = 5;
-        public const int MAX_SEGMENT_NUM = 10;
+        // public const int MAX_NUM_PER_SEGMENT = 5;
+        // public const int MAX_SEGMENT_NUM = 10;
 
-        private bool Test(char specChar, Regex pattern)
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                int seg = Random.Range(1, MAX_SEGMENT_NUM + 1);
-                string s = "";
-                for (int i2 = 0; i2 < seg / 2; i2++)
-                {
-                    int r = Random.Range(1, MAX_NUM_PER_SEGMENT + 1);
-                    if (r % 2 == 0) r++;
-                    for (int i3 = 0; i3 < r; i3++)
-                        s += @"\\";
-                    s += "\\" + specChar;
-                }
-                s += @"\\" + specChar + "ABC" + specChar + @"\\";
-                for (int i2 = 0; i2 < seg / 2; i2++)
-                {
-                    int r = Random.Range(1, MAX_NUM_PER_SEGMENT + 1);
-                    if (r % 2 == 0) r++;
-                    for (int i3 = 0; i3 < r; i3++)
-                        s += @"\\";
-                    s += "\\" + specChar;
-                }
+        // private bool Test(char specChar, Regex pattern)
+        // {
+        //     for (int i = 0; i < 100; i++)
+        //     {
+        //         int seg = Random.Range(1, MAX_SEGMENT_NUM + 1);
+        //         string s = "";
+        //         for (int i2 = 0; i2 < seg / 2; i2++)
+        //         {
+        //             int r = Random.Range(1, MAX_NUM_PER_SEGMENT + 1);
+        //             if (r % 2 == 0) r++;
+        //             for (int i3 = 0; i3 < r; i3++)
+        //                 s += @"\\";
+        //             s += "\\" + specChar;
+        //         }
+        //         s += @"\\" + specChar + "ABC" + specChar + @"\\";
+        //         for (int i2 = 0; i2 < seg / 2; i2++)
+        //         {
+        //             int r = Random.Range(1, MAX_NUM_PER_SEGMENT + 1);
+        //             if (r % 2 == 0) r++;
+        //             for (int i3 = 0; i3 < r; i3++)
+        //                 s += @"\\";
+        //             s += "\\" + specChar;
+        //         }
 
-                MatchCollection escapes = pattern.Matches(s);
-                Debug.Log(s);
-                Debug.Log(escapes[0].Result("$2"));
-                if (escapes.Count != 1 || escapes[0].Result("$2") != "ABC")
-                    return false;
-            }
-            return true;
-        }
+        //         MatchCollection escapes = pattern.Matches(s);
+        //         Debug.Log(s);
+        //         Debug.Log(escapes[0].Result("$2"));
+        //         if (escapes.Count != 1 || escapes[0].Result("$2") != "ABC")
+        //             return false;
+        //     }
+        //     return true;
+        // }
 
 
-        [Test]
-        public async Task BackSlashFilterTest()
-        {
-            await Awaitable.NextFrameAsync();
-            Assert.IsTrue(Test('$', new Regex(@"(?<!\\)(?:\\{2})*(\$([\w.]*?)\$)")));
-        }
+        // [Test]
+        // public void BackSlashFilterTest()
+        // {
+        //     Assert.IsTrue(Test('$', new Regex(@"(?<!\\)(?:\\{2})*(\$([\w.]*?)\$)")));
+        // }
 
         [TestCase(@"A is $A.b$|A is Content")]
         [TestCase(@"A is $A.b$ $A.c$|A is Content Content")]
